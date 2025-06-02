@@ -4,12 +4,15 @@ import "./index.css";
 import App from "./App.jsx";
 import AppProvider from "./context/AppContext.jsx";
 import { ToastContainer } from "react-toastify";
+import TenantProvider from "./context/TenantContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AppProvider>
-      <App />
-      <ToastContainer position="top-center" />
+      <TenantProvider>
+        <App />
+        <ToastContainer position="top-center" />
+      </TenantProvider>
     </AppProvider>
   </StrictMode>
 );

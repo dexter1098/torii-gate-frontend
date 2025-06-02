@@ -23,6 +23,8 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ProtectedRoute from "./components/ProtectedRoute";
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const CheckYourEmail = lazy(() => import("./pages/CheckYourEmail"));
+import EmptyTenant from "./components/EmptyTenant";
+import EmptyLandlord from "./components/EmptyLandlord";
 
 function App() {
   return (
@@ -31,7 +33,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route
-            element={<ProtectedRoute allowRoles={["landlord", "tenant"]} />}
+            element={<ProtectedRoute allowedRoles={["landlord", "tenant"]} />}
           >
             <Route path="/home" element={<HomeLoggedIn />} />
             <Route path="/property/:propertyId" element={<PropertyDetail />} />
