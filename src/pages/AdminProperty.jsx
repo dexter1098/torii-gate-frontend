@@ -5,7 +5,61 @@ import AdminPropertyCard from "../components/AdminPropertyCard";
 import { Link } from "react-router-dom";
 import { MdOutlineAddHome } from "react-icons/md";
 import AdminPagination from "../components/AdminPagination";
+import SuspenseLoader from "../components/SuspenseLoader";
+import { axiosInstance } from "../utils/axiosInstance";
+import { useState, useEffect } from "react";
+import { useAppContext } from "../hooks/useAppContext";
+import EmptyLandlord from "../components/EmptyLandlord";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 const AdminProperty = () => {
+  const redirect = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [properties, setProperties] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [rented, setRented] = useState(0);
+  const [available, setAvailable] = useState(0);
+  const { token } = useAppContext();
+
+  const fetchProperties = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/property/landlord?page=${page}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // fetch properties
+      const { data } = response;
+      setProperties(data.properties);
+      setPage(data.currentPage);
+      setTotalPages(data.totalPages);
+      setTotal(data.total);
+      setRented(data.rentedProperties);
+      setAvailable(data.availableProperties);
+      setIsLoading(false);
+
+      if (response.status === 401) {
+        toast.warning("session expired");
+        redirect("/login");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchProperties();
+  }, [page]);
+  if (isLoading) {
+    return <SuspenseLoader />;
+  }
+  if (!isLoading && total === 0) {
+    return <EmptyLandlord />;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between my-5">
@@ -37,7 +91,7 @@ const AdminProperty = () => {
             Total Property
           </h2>
           <div className="w-full bg-white rounded-lg flex items-center h-[80px] pl-3.5">
-            <h1 className="font-semibold text-2xl">05</h1>
+            <h1 className="font-semibold text-2xl">{total}</h1>
           </div>
         </div>
         <div className="w-full lg:w-[274.25px] ">
@@ -45,7 +99,7 @@ const AdminProperty = () => {
             Available Property
           </h2>
           <div className="w-full bg-white rounded-lg flex items-center h-[80px] pl-3.5">
-            <h1 className="font-semibold text-2xl">03</h1>
+            <h1 className="font-semibold text-2xl">{available}</h1>
           </div>
         </div>
         <div className="w-full lg:w-[274.25px] ">
@@ -53,7 +107,7 @@ const AdminProperty = () => {
             Rented Property
           </h2>
           <div className="w-full bg-white rounded-lg flex items-center h-[80px] pl-3.5">
-            <h1 className="font-semibold text-2xl">02</h1>
+            <h1 className="font-semibold text-2xl">{rented}</h1>
           </div>
         </div>
         <div className="w-full lg:w-[274.25px]">
@@ -73,12 +127,18 @@ const AdminProperty = () => {
         </div>
       </div>
       <div className="flex flex-col gap-4">
-        {properties.slice(0, 5).map((property) => {
+        {properties.map((property) => {
           return <AdminPropertyCard key={property._id} {...property} />;
         })}
       </div>
       <div>
-        <AdminPagination />
+        {totalPages > 1 && (
+          <AdminPagination
+            page={page}
+            totalPages={totalPages}
+            setPage={setPage}
+          />
+        )}
       </div>
     </div>
   );
